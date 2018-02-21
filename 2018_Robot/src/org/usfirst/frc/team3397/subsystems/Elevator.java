@@ -2,6 +2,7 @@ package org.usfirst.frc.team3397.subsystems;
 
 import org.usfirst.frc.team3397.robot.OI;
 import org.usfirst.frc.team3397.robot.Robot;
+import org.usfirst.frc.team3397.robot.Config;
 
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -11,6 +12,7 @@ import java.util.logging.Logger;
 public class Elevator {
 	
 //	RobotLayout rLayout;
+	Config config = new Config();
 	OI controlScheme;
 	public Victor elevatorMotor;
 	public DigitalInput elevatorTopStop;
@@ -22,12 +24,12 @@ public class Elevator {
 	private static final Logger logger = Logger.getLogger(Robot.class.getName());
 	
 	public Elevator() {
-//		rLayout = new RobotLayout();
+		config.determineConfig();
 		controlScheme = new OI(0, 1);
 		
 		elevatorTopStop = new DigitalInput(0);
 		
-		elevatorMotor = new Victor(4);
+		elevatorMotor = new Victor(config.NUM_ELEVATOR_LIFT);
 		elevatorSpeed = 0.5;
 		
 		elevatorUpCtrl = controlScheme.getElevatorUp();

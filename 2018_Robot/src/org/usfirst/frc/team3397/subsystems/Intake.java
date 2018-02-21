@@ -2,6 +2,7 @@ package org.usfirst.frc.team3397.subsystems;
 
 import org.usfirst.frc.team3397.robot.OI;
 import org.usfirst.frc.team3397.robot.Robot;
+import org.usfirst.frc.team3397.robot.Config;
 
 import edu.wpi.first.wpilibj.Victor;
 
@@ -9,7 +10,9 @@ import java.util.logging.Logger;
 
 public class Intake {
 	
+	Config config = new Config();
 	OI controlScheme;
+	Robot robot = new Robot();
 
 	public Victor intakeLift;
 	public Victor leftIntake;
@@ -21,15 +24,18 @@ public class Intake {
 	
 	boolean INTAKE_UP;
 	
+	enum IntakeEnum {PUSH, PULL};
+	
 	private static final Logger logger = Logger.getLogger(Robot.class.getName());
 	
 	public Intake() {
 		
+		config.determineConfig();
 		controlScheme = new OI(0, 1);
 		
-		intakeLift = new Victor(7);
-		leftIntake = new Victor(9);
-		rightIntake = new Victor(8);
+		intakeLift = new Victor(config.NUM_INTAKE_LIFT);
+		leftIntake = new Victor(config.NUM_INTAKE_LEFT);
+		rightIntake = new Victor(config.NUM_INTAKE_RIGHT);
 		
 		intakeSpeed = 0.5;
 		intakeLiftSpeed = 0.5;
@@ -89,6 +95,17 @@ public class Intake {
 		{
 			leftIntake.set(0.0);
 			logger.info("Intake not running");
+		}
+	}
+	
+	public void setIntake(boolean PUSH, double speed) {
+		if (PUSH) {
+			rightIntake.set(speed);
+			leftIntake.set(-speed);
+		}
+		else if (!PUSH) {
+			rightIntake.set(-speed);
+			leftIntake.set(speed);
 		}
 	}
 }

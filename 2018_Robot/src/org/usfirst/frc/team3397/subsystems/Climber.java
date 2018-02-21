@@ -1,6 +1,7 @@
 package org.usfirst.frc.team3397.subsystems;
 
 import org.usfirst.frc.team3397.robot.OI;
+import org.usfirst.frc.team3397.robot.Config;
 
 import edu.wpi.first.wpilibj.Victor;
 
@@ -8,6 +9,7 @@ public class Climber {
 	
 //	RobotLayout rLayout;
 	OI controlScheme;
+	Config config = new Config();
 	
 	public Victor hookDeployMotor;
 	public Victor climberWinchMotor;
@@ -21,11 +23,12 @@ public class Climber {
 	boolean climberWinchDn;
 	
 	public Climber() {
-//		rLayout = new RobotLayout();
+		config.determineConfig();
+		
 		controlScheme = new OI(0, 1);
 		
-		hookDeployMotor = new Victor(5);
-		climberWinchMotor = new Victor(6);
+		hookDeployMotor = new Victor(config.NUM_CLIMB_HOOK);
+		climberWinchMotor = new Victor(config.NUM_CLIMB_WINCH);
 		
 		hookDeploySpeed = 0.5;
 		climberWinchSpeed = 0.5;
