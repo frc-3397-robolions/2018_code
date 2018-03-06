@@ -34,11 +34,11 @@ public class OI {
 	}
 	
 	public boolean getRightIntakeIn() {
-		return driveStick.getTriggerAxis(Hand.kRight) >= 0.5;
+		return driveStick.getTriggerAxis(Hand.kRight) >= 0.75;
 	}
 	
 	public boolean getLeftIntakeIn() {
-		return driveStick.getTriggerAxis(Hand.kLeft) >= 0.5;
+		return driveStick.getTriggerAxis(Hand.kLeft) >= 0.75;
 	}
 	
 	public boolean getRightIntakeOut() {
@@ -47,6 +47,18 @@ public class OI {
 	
 	public boolean getLeftIntakeOut() {
 		return driveStick.getBumper(Hand.kLeft);
+	}
+	
+	public boolean test() {
+		return operatorStick.getRawButton(4);
+	}
+	
+	public boolean getX() {
+		return driveStick.getXButton();
+	}
+	
+	public boolean getTurboShoot() {
+		return driveStick.getBButton();
 	}
 	
 	public void vibrate() {
@@ -62,11 +74,11 @@ public class OI {
 	// Operator stick controls //
 	
 	public boolean getElevatorUp() {
-		return operatorStick.getRawButton(1);
+		return operatorStick.getRawButton(2);
 	}
 	
 	public boolean getElevatorDown() {
-		return operatorStick.getRawButton(2);
+		return operatorStick.getRawButton(1);
 	}
 	
 	public boolean getHookDeployUp() {
@@ -78,11 +90,11 @@ public class OI {
 	}
 	
 	public boolean getClimbWinchUp() {
-		return operatorStick.getRawButton(3);
+		return operatorStick.getRawAxis(1) > 0.0;
 	}
 	
 	public boolean getClimbWinchDown() {
-		return operatorStick.getRawButton(4);
+		return operatorStick.getRawAxis(1) < 0.0;
 	}
 	
 	public boolean getIntakeUp() {
@@ -92,4 +104,5 @@ public class OI {
 	public boolean getIntakeDown() {
 		return operatorStick.getRawAxis(3) >= 0.5;
 	}
+	
 }

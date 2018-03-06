@@ -1,6 +1,6 @@
 package org.usfirst.frc.team3397.robot;
 
-import edu.wpi.first.wpilibj.DigitalInput;
+//import edu.wpi.first.wpilibj.DigitalInput;
 
 public class Config {
 	
@@ -18,7 +18,7 @@ public class Config {
 	public int NUM_CLIMB_HOOK = 0;
 	public int NUM_CLIMB_WINCH = 0;
 	
-	public DigitalInput configInput = new DigitalInput(9);
+//	public DigitalInput configInput = new DigitalInput(9);
 	
 	public boolean finalBot = false;
 	

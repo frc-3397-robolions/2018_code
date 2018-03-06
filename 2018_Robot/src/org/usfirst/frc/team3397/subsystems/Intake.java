@@ -12,7 +12,7 @@ public class Intake {
 	
 	Config config = new Config();
 	OI controlScheme;
-	Robot robot = new Robot();
+//	Robot robot = new Robot();
 
 	public Victor intakeLift;
 	public Victor leftIntake;
@@ -21,6 +21,8 @@ public class Intake {
 	double intakeSpeed;
 	double intakeLiftSpeed;
 	double shootSpeed;
+	
+	double tiltdesired;
 	
 	boolean INTAKE_UP;
 	
@@ -33,9 +35,9 @@ public class Intake {
 		config.determineConfig();
 		controlScheme = new OI(0, 1);
 		
-		intakeLift = new Victor(config.NUM_INTAKE_LIFT);
-		leftIntake = new Victor(config.NUM_INTAKE_LEFT);
-		rightIntake = new Victor(config.NUM_INTAKE_RIGHT);
+		intakeLift = new Victor(6);
+		leftIntake = new Victor(8);
+		rightIntake = new Victor(9);
 		
 		intakeSpeed = 0.5;
 		intakeLiftSpeed = 0.5;
@@ -46,12 +48,16 @@ public class Intake {
 	}
 	
 	public void intakeLift() {
+		
+		double tilterr;
+		double tiltcmd;
+		
 		if (controlScheme.getIntakeUp()) {
-			intakeLift.set(intakeLiftSpeed);
+			intakeLift.set(-intakeLiftSpeed);
 			logger.info("Intake up");
 		}
 		else if (controlScheme.getIntakeDown()) {
-			intakeLift.set(-intakeLiftSpeed);
+			intakeLift.set(intakeLiftSpeed);
 			logger.info("Intake down");
 		}
 		else
@@ -63,7 +69,13 @@ public class Intake {
 	
 	public void runIntake() {
 		if (controlScheme.getRightIntakeOut() && controlScheme.getLeftIntakeOut()) {
-			rightIntake.set(shootSpeed);
+			if (controlScheme.getTurboShoot()) {
+				rightIntake.set(shootSpeed);
+			}
+			else
+			{
+				rightIntake.set(intakeSpeed);
+			}
 		}
 		else if (controlScheme.getRightIntakeIn()) {
 			rightIntake.set(-intakeSpeed);
@@ -76,12 +88,18 @@ public class Intake {
 		}
 		else
 		{
-			rightIntake.set(0.0);
+			rightIntake.set(-0.05);
 		}
 		
 		if (controlScheme.getRightIntakeOut() && controlScheme.getLeftIntakeOut()) {
-			leftIntake.set(-shootSpeed);
-			logger.info("Shooting cube");
+			if (controlScheme.getTurboShoot()) {
+				leftIntake.set(-shootSpeed);
+			}
+			else
+			{
+				leftIntake.set(-intakeSpeed);
+				logger.info("Shooting cube");
+			}
 		}
 		else if (controlScheme.getLeftIntakeIn()) {
 			leftIntake.set(intakeSpeed);
@@ -93,7 +111,7 @@ public class Intake {
 		}
 		else
 		{
-			leftIntake.set(0.0);
+			leftIntake.set(0.05);
 			logger.info("Intake not running");
 		}
 	}
