@@ -144,7 +144,7 @@ public class DriveTrain {
 	}
 	
 	public void angleDrive(double speed, double angle) {
-		speed *= -1;
+//		speed *= -1;
 		double angleDiff = angle - ahrs.getAngle();
 		
 		double turnInput = angleDiff * 0.05;
@@ -154,6 +154,8 @@ public class DriveTrain {
 		else if (turnInput < -0.3) {
 			turnInput = -0.3;
 		}
+		
+		SmartDashboard.putNumber("Turn Input for straight driving", turnInput);
 		
 		chassis.driveCartesian(speed, 0, turnInput);
 	}

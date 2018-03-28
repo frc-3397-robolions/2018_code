@@ -34,11 +34,11 @@ public class Elevator {
 		controlScheme = new OI(0, 1);
 		
 		elevatorTopStop = new DigitalInput(0);
-		elevatorPot = new AnalogInput(0);
+		elevatorPot = new AnalogInput(1);
 		
 		elevatorMotor = new Victor(4);
 		elevatorSpeed = 0.75;
-		elevatorSpeedDown = 0.2;
+		elevatorSpeedDown = 0.4;
 		
 		elevatorUpCtrl = controlScheme.getElevatorUp();
 		elevatorDnCtrl = controlScheme.getElevatorDown();
@@ -72,7 +72,13 @@ public class Elevator {
 			
 		}
 		else if (controlScheme.getElevatorDown() == true) {
-			elevatorMotor.set(elevatorSpeedDown);
+			if (elevatorPos >= 2.9) {
+				elevatorMotor.set(0.2);
+			}
+			else
+			{
+				elevatorMotor.set(elevatorSpeedDown);
+			}
 			logger.info("Elevator going down");
 		}
 		else

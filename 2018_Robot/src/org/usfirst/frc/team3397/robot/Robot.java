@@ -43,8 +43,9 @@ import org.usfirst.frc.team3397.subsystems.Intake;
  */
 public class Robot extends IterativeRobot implements PIDOutput {
 	private static final String kMiddleAuto = "Middle Auto";
-	private static final String kLeftAuto = "Left Auto";
 	private static final String kRightAuto = "Right Auto";
+	private static final String kFarLeftAuto = "Far Left Auto";
+	private static final String kFarRightAuto = "Far Right Auto";
 	private String     m_autoSelected;
 	private SendableChooser<String> auto_chooser = new SendableChooser<>();
 	
@@ -57,25 +58,24 @@ public class Robot extends IterativeRobot implements PIDOutput {
     
     public final double INTAKE_DEPLOY_TIME = 0.5;
 	public final double TIME_A = 0.5;
-	public final double TIME_B_L = 2.2;
-	public final double TIME_B_R = 2.4;
-	public final double TIME_C = 5.8;
-	public final double TIME_SPIT = 0.75;
-	public final double TIME_TURN = 3.45; 	// This variable represents the time it takes to complete
+	public final double TIME_B_L = 1.3995;
+	public final double TIME_B_R = 2.1;
+	public final double TIME_TURN = 3.5; 	// This variable represents the time it takes to complete
 											// the first two parts of the program
-	public final double TIME_D = 7.6;
+	public final double TIME_D = 6.6;
+	public final double TIME_SPIT = 0.75;
 	
-	public final double RIGHT_ANGLE = 29.93716257;
-	public final double LEFT_ANGLE = -34.1778169;
-//	public final double ANGLE_ERROR = 0.271778169;
+	public final double RIGHT_ANGLE = 28.53716257;
+	public final double LEFT_ANGLE = -32.1778169;
 	public final double ANGLE_ERROR = 1;
 	
-	public final double SIDE_TIME_A = 2.5;
+	public final double SWITCH_TIME_A = 2.5;
+	public final double SIDE_TIME_A = 3.25;
 	public final double SIDE_TIME_WAIT = 2.5;
 	public final double RIGHT_SIDE_ANGLE = -90.0;
 	public final double LEFT_SIDE_ANGLE = 90.0;
-	public final double SIDE_TURN_TIME = 3.0;
-	public final double SIDE_TIME_C = 3.0;
+	public final double SIDE_TURN_TIME = 5.0;
+	public final double SIDE_TIME_C = 5.25;
 	
 	public AnalogInput elevatorPot;
 	double elevatorPos;
@@ -89,10 +89,10 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	
 	public boolean STAGE_1 = true;
 	public boolean STAGE_2 = false;
-	public boolean SET_STAGE_2 = true;
 	public boolean STAGE_3 = false;
 	public boolean STAGE_4 = false;
 	public boolean STAGE_5 = false;
+	public boolean SET_STAGE_2 = true;
 	public boolean DIRECTION = false; // false = left; true = right
 	public boolean DIRECTION_2 = true;
 	
@@ -161,7 +161,8 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	public void robotInit() {
 		auto_chooser.addDefault("Middle Auto", kMiddleAuto);
 		auto_chooser.addObject("Right Auto", kRightAuto);
-		auto_chooser.addObject("Left Auto", kLeftAuto);
+		auto_chooser.addObject("Far Right Auto", kFarRightAuto);
+		auto_chooser.addObject("Far Left Auto", kFarLeftAuto);
 		SmartDashboard.putData("Auto Programs", auto_chooser);			//		SmartDashboard.putData(kAutoValueKey, null);
 		
 		config.determineConfig();
@@ -279,6 +280,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 	 */
 	@Override
 	public void autonomousPeriodic() {
+//		Pos1_FPos1 = { 
+//		{ "DC", 0.0, 0.5, -0.2},
+//		{ "IN", 4 }
+//};
+		
 		String gameData = DriverStation.getInstance().getGameSpecificMessage();
 		
 		double angleDiffLeftAbs = Math.abs(LEFT_ANGLE) - Math.abs(ahrs.getAngle());
@@ -301,14 +307,14 @@ public class Robot extends IterativeRobot implements PIDOutput {
 					logger.info("Turning left");
 					if (time.get() < TIME_A) {
 						robotDrive.angleDrive(0.5, 0.0);
-						intakeDeploy.set(-0.65);
+						intakeDeploy.set(-0.75);
 					}
 					else {
 						robotDrive.stop();
+						intakeDeploy.set(0.05);
 						if (SET_STAGE_2) {
 							STAGE_2 = true;
 						}
-						intakeDeploy.set(0.05);
 					}
 					
 					if (STAGE_2) {
@@ -316,6 +322,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						turnController.enable();
 						turnController.setSetpoint(LEFT_ANGLE);
 						if (time.get() >= TIME_TURN) {
+							robotDrive.stop();
 							SET_STAGE_2 = false;
 							STAGE_2 = false;
 							STAGE_3 = true;
@@ -327,6 +334,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 							STAGE_2 = false;
 							if (AUTO_COUNTER >= 30) {
 								SET_STAGE_2 = false;
+								STAGE_2 = false;
 								STAGE_3 = true;
 							}
 
@@ -335,7 +343,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						}
 						else if (ahrs.getAngle() < LEFT_ANGLE) {
 							robotDrive.Turn(AUTO_ROTATION_RATE, ahrs.getAngle());
-//							robotDrive.Turn(0.3);
 							logger.info("STAGE_2 TO THE LEFT!");
 							if (DIRECTION) {
 								DIRECTION = false;
@@ -356,21 +363,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						turnController.disable();
 						if (time.get() <= (TIME_TURN + TIME_B_L)) {
 							elevator.setPos(0.8);
-							double turnInput = angleDiffLeft * 0.05;
-							if (turnInput > 0.3) {
-								turnInput = 0.3;
-							}
-							else if (turnInput < -0.3) {
-								turnInput = -0.3;
-							}
-							
-							SmartDashboard.putNumber("Turn Input in auto", turnInput);
-							
 							robotDrive.angleDrive(0.8, LEFT_ANGLE);
 						}
 						else
 						{
-							robotDrive.Drive(0.0);
+							robotDrive.stop();
 							STAGE_4 = true;
 							STAGE_3 = false;
 							elevatorMotor.set(-0.09);
@@ -382,12 +379,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						turnController.enable();
 						turnController.setSetpoint(LEFT_ANGLE);
 						if (time.get() >= TIME_D) {
+							robotDrive.stop();
 							STAGE_4 = false;
 							STAGE_5 = true;
 						}
 						
 						else if (Math.abs(angleDiff2) <= ANGLE_ERROR) {
-							robotDrive.Turn(0, ahrs.getAngle());
+							robotDrive.stop();
 							logger.info("7676874534537534");
 							if (AUTO_COUNTER_2 >= 30) {
 								STAGE_4 = false;
@@ -399,7 +397,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						}
 						else if (ahrs.getAngle() > 0) {
 							robotDrive.Turn(-AUTO_ROTATION_RATE, ahrs.getAngle());;
-//							robotDrive.Turn(0.3);
 							logger.info("STAGE_2 TO THE LEFT!");
 							if (!DIRECTION) {
 								DIRECTION = false;
@@ -418,12 +415,12 @@ public class Robot extends IterativeRobot implements PIDOutput {
 					else if (STAGE_5) {
 						if (time.get() > TIME_D && time.get() <= (TIME_D + TIME_SPIT)) {
 							intake.setIntake(true, 0.5);
-							robotDrive.Drive(0.15);
+							robotDrive.angleDrive(0.15, 0.0);
 						}
 						else
 						{
 							intake.setIntake(true, 0.0);
-							robotDrive.Drive(0.0);
+							robotDrive.stop();
 						}
 					}
 					
@@ -431,11 +428,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				else if (autoSide == "right") {
 					logger.info("Turning right");
 					if (time.get() < TIME_A) {
-						robotDrive.Drive(0.5);
-						intakeDeploy.set(-0.65);
+						robotDrive.angleDrive(0.5, 0.0);
+						intakeDeploy.set(-0.75);
 					}
 					else {
-						robotDrive.Drive(0.0);
+						robotDrive.stop();
 						intakeDeploy.set(0.05);
 						if (SET_STAGE_2) {
 							STAGE_2 = true;
@@ -446,18 +443,19 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						logger.info("Entering stage 2");
 						turnController.enable();
 						turnController.setSetpoint(RIGHT_ANGLE);
-						
 						if (time.get() >= TIME_TURN) {
+							robotDrive.stop();
 							SET_STAGE_2 = false;
 							STAGE_2 = false;
 							STAGE_3 = true;
 						}
 						else if (Math.abs(angleDiffRightAbs) <= ANGLE_ERROR) {
-							robotDrive.Turn(0, ahrs.getAngle());
+							robotDrive.stop();
 							logger.info("7676874534537534");
 							STAGE_2 = false;
 							if (AUTO_COUNTER >= 50) {
 								SET_STAGE_2 = false;
+								STAGE_2 = false;
 								STAGE_3 = true;
 							}
 
@@ -466,7 +464,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						}
 						else if (Math.abs(ahrs.getAngle()) < Math.abs(RIGHT_ANGLE)) {
 							robotDrive.Turn(AUTO_ROTATION_RATE, ahrs.getAngle());
-//							robotDrive.Turn(0.3);
 							logger.info("TURNING TO THE LEFT!");
 							if (DIRECTION) {
 								DIRECTION = false;
@@ -487,22 +484,11 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						turnController.disable();
 						if (time.get() <= (TIME_TURN + TIME_B_R)) {
 							elevator.setPos(0.8);
-							double turnInput = angleDiffRight * 0.05;
-							if (turnInput > 0.3) {
-								turnInput = 0.3;
-							}
-							else if (turnInput < -0.3) {
-								turnInput = -0.3;
-							}
-							
-							SmartDashboard.putNumber("Turn Input in auto", turnInput);
-							
-							robotDrive.driveCart(0.5, 0.0, turnInput);
-
+							robotDrive.angleDrive(0.5, RIGHT_ANGLE);
 						}
 						else
 						{
-							robotDrive.Drive(0.0);
+							robotDrive.stop();
 							STAGE_3 = false;
 							STAGE_4 = true;
 						}
@@ -512,12 +498,13 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						turnController.enable();
 						turnController.setSetpoint(RIGHT_ANGLE);
 						if (time.get() >= TIME_D) {
+							robotDrive.stop();
 							STAGE_4 = false;
 							STAGE_5 = true;
 						}
 						
-						else if (angleDiff2 <= ANGLE_ERROR) {
-							robotDrive.Turn(0, ahrs.getAngle());
+						else if (Math.abs(angleDiff2) <= ANGLE_ERROR) {
+							robotDrive.stop();
 							logger.info("7676874534537534");
 							if (AUTO_COUNTER >= 30) {
 								STAGE_4 = false;
@@ -529,7 +516,6 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						}
 						else if (ahrs.getAngle() > 0) {
 							robotDrive.Turn(-AUTO_ROTATION_RATE, ahrs.getAngle());
-//							robotDrive.Turn(0.3);
 							logger.info("STAGE_2 TO THE LEFT!");
 							if (!DIRECTION) {
 								DIRECTION = false;
@@ -543,54 +529,44 @@ public class Robot extends IterativeRobot implements PIDOutput {
 								AUTO_ROTATE_RATE *= ROTATION_MULTIPLIER;
 							}
 						}
-						logger.info("Turning is still true");
+						logger.info("Running stage 4");
 					}
 					else if (STAGE_5) {
 						if (time.get() > TIME_D && time.get() <= (TIME_D + TIME_SPIT)) {
 							intake.setIntake(true, 0.5);
-							robotDrive.Drive(0.15);
+							robotDrive.angleDrive(0.15, 0.0);
 						}
 						else
 						{
 							intake.setIntake(true, 0.0);
-							robotDrive.Drive(0.0);
+							robotDrive.stop();
 						}
+						logger.info("Running stage 5");
 					}
 				}
 				break;
-		case kLeftAuto:
+		case kFarLeftAuto:
 			double angleDiff_leftSide = Math.abs(LEFT_SIDE_ANGLE) - Math.abs(ahrs.getAngle());
 			if (STAGE_1) {
 				if (time.get() <= SIDE_TIME_A) {
-					double turnInput = -ahrs.getAngle() * 0.05;
-					if (turnInput > 0.3) {
-						turnInput = 0.3;                                      
-					}
-					else if (turnInput < -0.3) {
-						turnInput = -0.3;
-					}
-					
-					SmartDashboard.putNumber("Turn Input in auto", turnInput);
-					
-					robotDrive.driveCart(0.8, 0.0, turnInput);
-					
-//					if (autoSide == "left") {
+					robotDrive.angleDrive(0.4, 0.0);
+					if (autoSide == "left") {
 						elevator.setPos(1.0);
-						
 						if (time.get() <= INTAKE_DEPLOY_TIME) {
 							intakeDeploy.set(-0.6);
 						}
 						else {
 							intakeDeploy.set(0.0);
 						}
-//					}
+					}
 				}
 				else
 				{
-					robotDrive.Drive(0.0);
+					robotDrive.stop();
+					elevatorMotor.set(-0.09);
 					if (autoSide == "left") {
 						STAGE_1 = false;
-						STAGE_4 = true;
+						STAGE_2 = true;
 					}
 				}
 			}
@@ -598,7 +574,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 				if (autoSide == "left") {
 					if (time.get() <= SIDE_TURN_TIME) {
 						if (Math.abs(angleDiff_leftSide) <= ANGLE_ERROR) {
-							robotDrive.Turn(0, ahrs.getAngle());
+							robotDrive.stop();
 							logger.info("7676874534537534");
 							if (AUTO_COUNTER >= 30) {
 								STAGE_2 = false;
@@ -608,6 +584,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 							logger.info("Turning has ended!");
 							AUTO_COUNTER++;
 						}
+						
 						else if (ahrs.getAngle() < LEFT_SIDE_ANGLE) {
 							robotDrive.Turn(AUTO_ROTATION_RATE, ahrs.getAngle());
 							if (DIRECTION) {
@@ -635,17 +612,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			else if (STAGE_3) {
 				if (autoSide == "left") {
 					if (time.get() > SIDE_TURN_TIME && time.get() < SIDE_TIME_C) {
-						double turnInput = -ahrs.getAngle() * 0.05;
-						if (turnInput > 0.3) {
-							turnInput = 0.3;                                      
-						}
-						else if (turnInput < -0.3) {
-							turnInput = -0.3;
-						}
-						
-						SmartDashboard.putNumber("Turn Input in auto", turnInput);
-						
-						robotDrive.driveCart(0.8, 0.0, turnInput);
+						robotDrive.angleDrive(0.4, LEFT_SIDE_ANGLE);
 					}
 					else
 					{
@@ -657,7 +624,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			else if (STAGE_4) {
 				if (autoSide == "left") {
 					if (time.get() > SIDE_TIME_C && time.get() < SIDE_TIME_C + TIME_SPIT) {
-						intake.setIntake(true, 1.0);
+						intake.setIntake(true, 0.5);
 					}
 					else {
 						intake.setIntake(true, 0.0);
@@ -666,48 +633,38 @@ public class Robot extends IterativeRobot implements PIDOutput {
 			}
 			logger.info("Running left auto");
 			break;
-		case kRightAuto:
-			double angleDiff_rightSide = Math.abs(LEFT_SIDE_ANGLE) - Math.abs(ahrs.getAngle());
+		case kFarRightAuto:
+			double angleDiff_rightSide = Math.abs(RIGHT_SIDE_ANGLE) - Math.abs(ahrs.getAngle());
 			if (STAGE_1) {
 				if (time.get() <= SIDE_TIME_A) {
-					double turnInput = -ahrs.getAngle() * 0.05;
-					if (turnInput > 0.3) {
-						turnInput = 0.3;                                      
-					}
-					else if (turnInput < -0.3) {
-						turnInput = -0.3;
-					}
-					
-					SmartDashboard.putNumber("Turn Input in auto", turnInput);
-					
-					robotDrive.driveCart(0.4, 0.0, turnInput);
-					
-//					if (autoSide == "right") {
+					robotDrive.angleDrive(0.4, 0.0);
+					if (autoSide == "right") {
 						elevator.setPos(1.0);
-						
 						if (time.get() <= INTAKE_DEPLOY_TIME) {
 							intakeDeploy.set(-0.6);
 						}
 						else {
-							intakeDeploy.set(0.05);
-//						}
+							intakeDeploy.set(0.0);
+						}
 					}
 				}
 				else
 				{
-					robotDrive.Drive(0.0);
+					robotDrive.stop();
+					elevatorMotor.set(-0.09);
 					if (autoSide == "right") {
 						STAGE_1 = false;
-						STAGE_4 = true;
+						STAGE_2 = true;
 					}
-					elevatorMotor.set(-0.09);
 				}
 			}
+			
+
 			else if (STAGE_2) {
 				if (autoSide == "right") {
 					if (time.get() <= SIDE_TURN_TIME) {
 						if (Math.abs(angleDiff_rightSide) <= ANGLE_ERROR) {
-							robotDrive.Turn(0, ahrs.getAngle());
+							robotDrive.stop();
 							logger.info("7676874534537534");
 							if (AUTO_COUNTER >= 30) {
 								STAGE_2 = false;
@@ -738,31 +695,58 @@ public class Robot extends IterativeRobot implements PIDOutput {
 						STAGE_2 = false;
 						STAGE_3 = true;
 					}
+					
 				}
 			}
 			else if (STAGE_3) {
 				if (autoSide == "right") {
 					if (time.get() > SIDE_TURN_TIME && time.get() < SIDE_TIME_C) {
-						double turnInput = -ahrs.getAngle() * 0.05;
-						if (turnInput > 0.3) {
-							turnInput = 0.3;                                      
-						}
-						else if (turnInput < -0.3) {
-							turnInput = -0.3;
-						}
-						
-						SmartDashboard.putNumber("Turn Input in auto", turnInput);
-						
-						robotDrive.driveCart(0.8, 0.0, turnInput);
+						robotDrive.angleDrive(0.4, LEFT_SIDE_ANGLE);
 					}
 					else
 					{
+						robotDrive.stop();
 						STAGE_3 = false;
 						STAGE_4 = true;
 					}
 				}
 			}
 			else if (STAGE_4) {
+				if (autoSide == "left") {
+					if (time.get() > SIDE_TIME_C && time.get() < SIDE_TIME_C + TIME_SPIT) {
+						intake.setIntake(true, 0.5);
+					}
+					else {
+						intake.setIntake(true, 0.0);
+					}
+				}
+			}
+			logger.info("Running right auto");
+			break;
+		case kRightAuto:
+			double angleDiff_rightSide1 = Math.abs(LEFT_SIDE_ANGLE) - Math.abs(ahrs.getAngle());
+			if (STAGE_1) {
+				if (time.get() <= SIDE_TIME_A) {
+					robotDrive.angleDrive(0.4, 0.0);
+					elevator.setPos(1.0);
+					if (time.get() <= INTAKE_DEPLOY_TIME) {
+						intakeDeploy.set(-0.6);
+					}
+					else {
+						intakeDeploy.set(0.05);
+					}
+				}
+				else
+				{
+					robotDrive.stop();
+					elevatorMotor.set(-0.09);
+					if (autoSide == "right") {
+						STAGE_1 = false;
+						STAGE_2 = true;
+					}
+				}
+			}
+			else if (STAGE_2) {
 				if (autoSide == "right") {
 					if (time.get() > SIDE_TURN_TIME && time.get() < SIDE_TURN_TIME + TIME_SPIT) {
 						intake.setIntake(true, 1.0);
@@ -834,7 +818,7 @@ public class Robot extends IterativeRobot implements PIDOutput {
 		}
 		
 		if (controlScheme.test()) {
-			elevator.setPos(1.0);
+			elevator.setPos(0.8);
 		}
 		
 		if (controlScheme.getX()) {
