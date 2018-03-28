@@ -37,8 +37,7 @@ public class Config {
 //		}
 //		else
 //		{
-//			finalBot = false;
-			
+//			finalBot = false;	
 			
 //		}
 	}

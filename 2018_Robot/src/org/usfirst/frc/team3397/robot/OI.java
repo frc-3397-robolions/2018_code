@@ -104,5 +104,4 @@ public class OI {
 	public boolean getIntakeDown() {
 		return operatorStick.getRawAxis(3) >= 0.5;
 	}
-	
 }
